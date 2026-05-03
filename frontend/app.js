@@ -1,4 +1,6 @@
-const API_URL = 'http://localhost:3000/api';
+const API_URL = window.location.origin === 'http://localhost:3000' || window.location.origin.includes('127.0.0.1') 
+    ? 'http://localhost:3000/api' 
+    : '/api';
 
 const currencyFormatter = new Intl.NumberFormat('en-IN', {
     style: 'currency',
