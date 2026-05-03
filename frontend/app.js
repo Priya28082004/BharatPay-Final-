@@ -1,6 +1,6 @@
-const API_URL = window.location.origin === 'http://localhost:3000' || window.location.origin.includes('127.0.0.1') 
+const API_URL = window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1') 
     ? 'http://localhost:3000/api' 
-    : '/api';
+    : 'https://bharatpay-final.onrender.com/api';
 
 const currencyFormatter = new Intl.NumberFormat('en-IN', {
     style: 'currency',
