@@ -635,7 +635,13 @@ async function startCameraScanner(facing = 'environment') {
     } catch (err) {
         console.error('Camera error:', err);
         if (status) {
-            status.textContent = '⚠️ Camera access denied';
+            if (err.name === 'NotAllowedError') {
+                status.textContent = '⚠️ Permission denied by user';
+            } else if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
+                status.textContent = '⚠️ Security: HTTPS required for camera';
+            } else {
+                status.textContent = '⚠️ Camera error: ' + err.name;
+            }
             status.style.background = 'rgba(220,38,38,0.8)';
         }
     }

@@ -12,12 +12,17 @@ app.use(express.static(path.join(__dirname, '../frontend')));
 
 // MongoDB Connection
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/bharatpay';
-mongoose.connect(MONGODB_URI)
+mongoose.connect(MONGODB_URI, {
+    serverSelectionTimeoutMS: 5000 // Stop trying after 5 seconds
+})
     .then(() => {
-        console.log('Connected to MongoDB. Booting Schema.');
+        console.log('Connected to MongoDB Atlas. Booting Schema.');
         seedDatabase();
     })
-    .catch(err => console.error('Error connecting to MongoDB', err));
+    .catch(err => {
+        console.error('❌ MONGODB ERROR:', err.message);
+        console.log('TIP: Make sure you added MONGODB_URI to your Render Environment Variables.');
+    });
 
 // Schemas
 const userSchema = new mongoose.Schema({
