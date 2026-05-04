@@ -409,6 +409,10 @@ app.post('/api/recharge', async (req, res) => {
     }
 });
 
-app.listen(PORT, () => {
-    console.log(`MongoDB Auth-enabled Server running on http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`---------------------------------------------------------`);
+    console.log(`🚀 BharatPay Server is live!`);
+    console.log(`📡 Listening on Port: ${PORT}`);
+    console.log(`🔗 URL: http://localhost:${PORT}`);
+    console.log(`---------------------------------------------------------`);
 });
