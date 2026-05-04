@@ -9,13 +9,7 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
-
-// Health check for Render/Vercel monitoring
-app.get('/api/health', (req, res) => res.status(200).json({ status: 'UP', message: 'BharatPay Backend is running' }));
-
-// Static file serving - more robust for production
-const frontendPath = path.join(__dirname, '../frontend');
-app.use(express.static(frontendPath));
+app.use(express.static(path.join(__dirname, '../frontend')));
 
 // MongoDB Connection
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/bharatpay';
@@ -23,15 +17,12 @@ mongoose.connect(MONGODB_URI, {
     serverSelectionTimeoutMS: 5000 // Stop trying after 5 seconds
 })
     .then(() => {
-        console.log('✅ Connected to MongoDB Atlas. Booting Schema.');
+        console.log('Connected to MongoDB Atlas. Booting Schema.');
         seedDatabase();
     })
     .catch(err => {
-        console.error('❌ MONGODB CONNECTION ERROR:', err.message);
-        console.log('---------------------------------------------------------');
-        console.log('TIP 1: Check your Render Environment Variables (MONGODB_URI)');
-        console.log('TIP 2: Ensure your IP is whitelisted to 0.0.0.0/0 in Atlas');
-        console.log('---------------------------------------------------------');
+        console.error('❌ MONGODB ERROR:', err.message);
+        console.log('TIP: Make sure you added MONGODB_URI to your Render Environment Variables.');
     });
 
 // Schemas
