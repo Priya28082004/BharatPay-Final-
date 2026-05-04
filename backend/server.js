@@ -18,21 +18,24 @@ const frontendPath = path.join(__dirname, '../frontend');
 app.use(express.static(frontendPath));
 
 // MongoDB Connection
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/bharatpay';
-mongoose.connect(MONGODB_URI, {
-    serverSelectionTimeoutMS: 5000 // Stop trying after 5 seconds
-})
-    .then(() => {
-        console.log('✅ Connected to MongoDB Atlas. Booting Schema.');
-        seedDatabase();
-    })
-    .catch(err => {
-        console.error('❌ MONGODB CONNECTION ERROR:', err.message);
-        console.log('---------------------------------------------------------');
-        console.log('TIP 1: Check your Render Environment Variables (MONGODB_URI)');
-        console.log('TIP 2: Ensure your IP is whitelisted to 0.0.0.0/0 in Atlas');
-        console.log('---------------------------------------------------------');
-    });
+const MONGODB_URI = process.env.MONGODB_URI;
+
+if (!MONGODB_URI) {
+    console.error("❌ ERROR: MONGODB_URI is not defined in .env");
+    process.exit(1);
+}
+
+mongoose.connect(MONGODB_URI)
+  .then(() => {
+      console.log("✅ MongoDB Connected");
+      seedDatabase();
+  })
+  .catch((err) => {
+      console.log("❌ MongoDB Error:", err);
+      console.log('---------------------------------------------------------');
+      console.log('TIP: Ensure your IP is whitelisted to 0.0.0.0/0 in Atlas');
+      console.log('---------------------------------------------------------');
+  });
 
 // Schemas
 const userSchema = new mongoose.Schema({
