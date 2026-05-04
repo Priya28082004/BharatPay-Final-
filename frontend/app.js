@@ -65,7 +65,7 @@ async function loginUser() {
 
 async function biometricLogin() {
     if (!window.PublicKeyCredential) {
-        alert("Biometric login is not supported on this device/browser. Please use your PIN to log in.");
+        showToast("Biometric not supported. Use PIN.");
         return;
     }
 
@@ -118,7 +118,7 @@ async function signupUser() {
     
     if(!name || !phone || !pin || !bank_name || !atm_card) return alert('All fields required');
 
-    // Biometric Registration
+    // Biometric Registration (Optional)
     if (window.PublicKeyCredential) {
         try {
             const challenge = new Uint8Array(32);
@@ -130,34 +130,18 @@ async function signupUser() {
                 publicKey: {
                     challenge: challenge,
                     rp: { name: "Bharat Pay", id: window.location.hostname || "localhost" },
-                    user: {
-                        id: userID,
-                        name: phone,
-                        displayName: name
-                    },
+                    user: { id: userID, name: phone, displayName: name },
                     pubKeyCredParams: [{ type: "public-key", alg: -7 }, { type: "public-key", alg: -257 }],
-                    authenticatorSelection: {
-                        authenticatorAttachment: "platform",
-                        userVerification: "required"
-                    },
+                    authenticatorSelection: { authenticatorAttachment: "platform", userVerification: "required" },
                     timeout: 60000,
                     attestation: "none"
                 }
             });
+            showToast("Biometric security enabled! ✅");
         } catch (err) {
-            console.error("Biometric Setup Error:", err);
-            if (err.name !== 'NotAllowedError') {
-                alert("Biometric security setup failed. This is required for secure payments.");
-                return;
-            } else {
-                alert("Biometric security is mandatory to protect your account.");
-                return;
-            }
+            console.log("Biometric skipped or not supported.");
+            // We just proceed without blocking the user
         }
-    } else {
-        // Optional: If you want to allow signup without biometrics on old devices, 
-        // you could remove this alert. But for a "real" app, we keep it strict.
-        alert("Warning: Your device does not support biometric security. Your account will rely only on PIN.");
     }
 
     const btn = document.querySelector('#signup-form .btn-primary');
