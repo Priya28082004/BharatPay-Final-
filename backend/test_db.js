@@ -1,39 +1,38 @@
+require('dotenv').config();
 const mongoose = require('mongoose');
 
-mongoose.connect('mongodb://127.0.0.1:27017/bharatpay')
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/bharatpay';
+
+console.log('🔍 Connecting to:', MONGODB_URI.split('@')[1] || 'Local DB');
+
+mongoose.connect(MONGODB_URI)
     .then(async () => {
-        const User = mongoose.model('User', new mongoose.Schema({
-            phone: String, name: String, upi_id: String
-        }));
-        const Transaction = mongoose.model('Transaction', new mongoose.Schema({
-            user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-            target_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-        }));
-        const Contact = mongoose.model('Contact', new mongoose.Schema({
-            name: String, initials: String, color: String
+        console.log('✅ Successfully connected to MongoDB Atlas!');
+        
+        // Define a simple User schema to check data
+        const User = mongoose.models.User || mongoose.model('User', new mongoose.Schema({
+            phone: String, 
+            name: String, 
+            upi_id: String,
+            balance: Number
         }));
 
         const users = await User.find();
-        if (users.length > 0) {
-            const userId = users[0]._id.toString();
-            try {
-                const dummy = await Contact.find();
-                const res = dummy.map(d => ({
-                    id: d._id,
-                    name: d.name,
-                    initials: d.initials,
-                    color: d.color,
-                    phone: '1234567890',
-                    upi_id: 'dummy@bharat'
-                }));
-                console.log("Dummy result:", res);
-            } catch (err) {
-                console.error("Error:", err);
-            }
+        console.log('------------------------------------');
+        if (users.length === 0) {
+            console.log('ℹ️  Your database is currently EMPTY.');
+            console.log('💡 Try signing up in the app to see data appear here!');
+        } else {
+            console.log(`👤 Found ${users.length} user(s):`);
+            users.forEach((u, i) => {
+                console.log(`${i+1}. Name: ${u.name} | Phone: ${u.phone} | UPI: ${u.upi_id}`);
+            });
         }
+        console.log('------------------------------------');
+        
         process.exit(0);
     })
     .catch(err => {
-        console.error(err);
+        console.error('❌ CONNECTION ERROR:', err.message);
         process.exit(1);
     });

@@ -1,5 +1,5 @@
-const API_URL = window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1') 
-    ? 'http://localhost:3000/api' 
+const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'http://localhost:3000/api'
     : 'https://bharatpay-final.onrender.com/api';
 
 const currencyFormatter = new Intl.NumberFormat('en-IN', {
@@ -32,10 +32,12 @@ function toggleAuth(type) {
 }
 
 async function loginUser() {
+    console.log("DEBUG: Manual login button clicked");
     const phone = document.getElementById('login-phone').value;
     const pin = document.getElementById('login-pin').value;
     
     if(!phone || !pin) return alert('Enter phone and 4-Digit PIN');
+    console.log("DEBUG: Sending login request for:", phone);
 
     const btn = document.querySelector('#login-form .btn-primary');
     btn.textContent = 'Logging in...';
@@ -63,10 +65,7 @@ async function loginUser() {
 
 async function biometricLogin() {
     if (!window.PublicKeyCredential) {
-        // Fallback if not supported
-        if (!localStorage.getItem('bharatToken')) saveSession("demo-token-123", "guest@upi", "Demo Guest");
-        unlockApp();
-        showToast("Biometric verification successful (Fallback)");
+        alert("Biometric login is not supported on this device/browser. Please use your PIN to log in.");
         return;
     }
 
@@ -119,7 +118,7 @@ async function signupUser() {
     
     if(!name || !phone || !pin || !bank_name || !atm_card) return alert('All fields required');
 
-    // Enforce Biometric Registration for new accounts
+    // Biometric Registration
     if (window.PublicKeyCredential) {
         try {
             const challenge = new Uint8Array(32);
@@ -147,9 +146,18 @@ async function signupUser() {
             });
         } catch (err) {
             console.error("Biometric Setup Error:", err);
-            alert("Biometric security setup is mandatory. Please scan your fingerprint to sign up.");
-            return;
+            if (err.name !== 'NotAllowedError') {
+                alert("Biometric security setup failed. This is required for secure payments.");
+                return;
+            } else {
+                alert("Biometric security is mandatory to protect your account.");
+                return;
+            }
         }
+    } else {
+        // Optional: If you want to allow signup without biometrics on old devices, 
+        // you could remove this alert. But for a "real" app, we keep it strict.
+        alert("Warning: Your device does not support biometric security. Your account will rely only on PIN.");
     }
 
     const btn = document.querySelector('#signup-form .btn-primary');
@@ -605,33 +613,44 @@ function openScanner() {
 let currentCameraFacing = 'environment';
 
 function switchScannerCamera() {
+    const status = document.getElementById('scan-status');
+    if (status) status.textContent = '🔄 Switching camera...';
+    
     stopCameraScanner();
+    // Toggle between 'environment' (back) and 'user' (front)
     currentCameraFacing = currentCameraFacing === 'environment' ? 'user' : 'environment';
-    startCameraScanner(currentCameraFacing);
+    
+    // Small delay helps mobile hardware release the lens correctly
+    setTimeout(() => {
+        startCameraScanner(currentCameraFacing);
+    }, 300);
 }
 
 async function startCameraScanner(facing = 'environment') {
-    stopCameraScanner(); // clean any existing stream
+    stopCameraScanner(); 
 
     const video = document.getElementById('qr-video');
     const status = document.getElementById('scan-status');
     if (!video) return;
 
     try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-            video: {
-                facingMode: { ideal: facing },
-                width: { ideal: 1280 },
-                height: { ideal: 720 }
+        // Simplified constraints for maximum mobile compatibility
+        const constraints = {
+            video: { 
+                facingMode: facing,
+                width: { ideal: 640 },
+                height: { ideal: 480 }
             }
-        });
+        };
+        
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
         scannerStream = stream;
         video.srcObject = stream;
-        video.setAttribute('playsinline', true);
-        video.play();
-        video.addEventListener('loadedmetadata', () => {
-            scanQRFrame(); // start scanning loop
-        }, { once: true });
+        video.setAttribute('playsinline', true); // Critical for iOS
+        
+        // Use a promise to ensure video is actually playing
+        await video.play();
+        scanQRFrame(); 
     } catch (err) {
         console.error('Camera error:', err);
         if (status) {
