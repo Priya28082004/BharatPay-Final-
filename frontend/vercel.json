@@ -1,0 +1,9 @@
+{
+  "cleanUrls": true,
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "https://bharatpay-final-4.onrender.com/api/$1"
+    }
+  ]
+}
