@@ -854,7 +854,7 @@ function openModal(type, title, entityId = null, entityName = '') {
                     <div class="phone-input-group" id="recharge-phone-box">
                         <span class="phone-country-code"><span style="font-size:1.1rem;">🇮🇳</span> +91</span>
                         <input type="tel" id="recharge-phone" maxlength="10" placeholder="10-digit mobile number" oninput="onRechargePhoneInput(this)" autocomplete="tel-national">
-                        <i class="fas fa-mobile-alt phone-icon"></i>
+                        <i class="fas fa-address-book phone-icon" onclick="pickPhoneContactForRecharge()" style="cursor:pointer; color:var(--saffron); padding:4px 6px; font-size:1.1rem;" title="Pick contact from phone"></i>
                     </div>
                     <small id="recharge-phone-hint" style="color:var(--text-secondary); font-size:0.75rem; display:block; margin-top:2px;">Enter 10-digit mobile number across India</small>
                 </div>
@@ -989,19 +989,16 @@ function openModal(type, title, entityId = null, entityName = '') {
         } else if (type === 'add_bank') {
             openAddBankFlow();
         } else if (type === 'contacts') {
-            const hasContactPicker = ('contacts' in navigator && 'ContactsManager' in window);
             modalBody.innerHTML = `
                 <div style="display:flex;flex-direction:column;gap:14px;">
-                    ${hasContactPicker ? `
-                    <button class="payment-btn" style="margin-top:0;background:linear-gradient(135deg,var(--navy),#1a237e);" onclick="pickPhoneContact()">
-                        <i class="fas fa-address-book" style="margin-right:8px;"></i> Pick from Phone Contacts
+                    <button class="payment-btn" style="margin-top:0; display:flex; align-items:center; justify-content:center; gap:8px;" onclick="pickPhoneContact()">
+                        <i class="fas fa-address-book" style="font-size:1.1rem;"></i> Pick from Phone Contacts
                     </button>
                     <div style="display:flex;align-items:center;gap:10px;color:var(--text-secondary);font-size:0.8rem;">
                         <div style="flex:1;height:1px;background:var(--card-border);"></div>
                         or enter manually
                         <div style="flex:1;height:1px;background:var(--card-border);"></div>
                     </div>
-                    ` : ''}
                     <p style="margin:0;color:var(--text-secondary);font-size:0.9rem;">Enter name, phone number, or UPI ID:</p>
                     <input type="text" class="custom-input" id="contact-input" placeholder="Name, phone or UPI ID" onkeypress="if(event.key==='Enter') openPaymentModal(this.value,'contact')">
                     <button class="payment-btn" style="margin-top:0;" onclick="openPaymentModal(document.getElementById('contact-input').value,'contact')">Continue</button>
@@ -2500,5 +2497,135 @@ async function setupPocketMoney() {
         }
     }
 }
+
+// ================= PHONE CONTACT PICKER ================= //
+
+async function pickPhoneContact() {
+    const contactInput = document.getElementById('contact-input');
+
+    // 1. Check if W3C Web Contact Picker API is available (Chrome on Android / Edge mobile)
+    if ('contacts' in navigator && 'select' in navigator.contacts) {
+        try {
+            const props = ['name', 'tel'];
+            const opts = { multiple: false };
+            const contacts = await navigator.contacts.select(props, opts);
+
+            if (contacts && contacts.length > 0) {
+                const selected = contacts[0];
+                const name = (selected.name && selected.name.length > 0) ? selected.name[0] : '';
+                const tel = (selected.tel && selected.tel.length > 0) ? selected.tel[0] : '';
+
+                // Extract 10-digit phone number if present
+                const digits = tel.replace(/\D/g, '');
+                const cleanPhone = digits.length >= 10 ? digits.slice(-10) : digits;
+                const chosenTarget = cleanPhone || name || tel;
+
+                if (chosenTarget) {
+                    if (contactInput) {
+                        contactInput.value = chosenTarget;
+                    }
+                    // Immediately open payment modal with the picked contact
+                    openPaymentModal(chosenTarget, 'contact');
+                    return;
+                }
+            }
+        } catch (err) {
+            console.warn('Native Contact Picker error/cancelled:', err);
+            // If the user cancelled the native contact picker dialog, return silently
+            if (err.name === 'AbortError') {
+                return;
+            }
+            // For SecurityError, NotSupportedError or permission issues, fall back to in-app contact book
+            showInAppContactPicker();
+            return;
+        }
+    } else {
+        // Fallback for desktop or browsers without native contact picker API
+        showInAppContactPicker();
+    }
+}
+
+async function pickPhoneContactForRecharge() {
+    const phoneInput = document.getElementById('recharge-phone');
+
+    if ('contacts' in navigator && 'select' in navigator.contacts) {
+        try {
+            const contacts = await navigator.contacts.select(['name', 'tel'], { multiple: false });
+            if (contacts && contacts.length > 0) {
+                const selected = contacts[0];
+                const tel = (selected.tel && selected.tel.length > 0) ? selected.tel[0] : '';
+                const digits = tel.replace(/\D/g, '');
+                const cleanPhone = digits.length >= 10 ? digits.slice(-10) : digits;
+
+                if (cleanPhone && phoneInput) {
+                    phoneInput.value = cleanPhone;
+                    onRechargePhoneInput(phoneInput);
+                }
+            }
+        } catch (err) {
+            console.warn('Recharge contact pick error/cancelled:', err);
+        }
+    } else {
+        showToast('Native contacts not supported on this browser. Enter number manually.');
+    }
+}
+
+async function showInAppContactPicker() {
+    const modalTitle = document.getElementById('modal-title');
+    const modalBody = document.getElementById('modal-body');
+    if (!modalTitle || !modalBody) return;
+
+    modalTitle.textContent = 'Select Contact';
+    modalBody.innerHTML = `<div style="text-align:center; padding:25px;"><i class="fas fa-spinner fa-spin" style="font-size:1.6rem; color:var(--saffron);"></i><p style="margin-top:10px; color:var(--text-secondary); font-size:0.9rem;">Loading contacts...</p></div>`;
+
+    try {
+        const res = await fetch(`${API_URL}/contacts`, { headers: authHeaders() });
+        const contacts = await res.json();
+
+        let contactsHtml = '';
+        if (Array.isArray(contacts) && contacts.length > 0) {
+            contactsHtml = contacts.map(c => `
+                <div class="inapp-contact-row" onclick="openPaymentModal('${c.name.replace(/'/g, "\\'")}', 'contact')" style="display:flex; align-items:center; gap:12px; padding:12px 14px; background:#fff; border:1px solid var(--card-border); border-radius:14px; cursor:pointer; margin-bottom:8px; transition:all 0.2s;">
+                    <div style="width:40px; height:40px; border-radius:50%; background:${c.color || 'var(--navy)'}; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:1rem;">
+                        ${c.initials || c.name.charAt(0)}
+                    </div>
+                    <div style="flex:1;">
+                        <h4 style="margin:0; font-size:0.95rem; color:var(--navy); font-weight:600;">${c.name}</h4>
+                        <p style="margin:2px 0 0; font-size:0.75rem; color:var(--text-secondary);">Arya Pay Verified</p>
+                    </div>
+                    <span style="font-size:0.8rem; color:var(--saffron); font-weight:600;">Pay <i class="fas fa-chevron-right" style="font-size:0.7rem;"></i></span>
+                </div>
+            `).join('');
+        } else {
+            contactsHtml = `<p style="text-align:center; color:var(--text-secondary); padding:20px;">No saved contacts found.</p>`;
+        }
+
+        modalBody.innerHTML = `
+            <div style="display:flex; flex-direction:column; gap:10px;">
+                <input type="text" class="custom-input" placeholder="Search contacts..." oninput="filterInAppContacts(this.value)" style="margin-bottom:6px;">
+                <div id="in-app-contacts-list" style="max-height:280px; overflow-y:auto;">
+                    ${contactsHtml}
+                </div>
+                <button class="payment-btn" style="background:#f1f5f9; color:var(--navy); border:1px solid #cbd5e1; margin-top:4px;" onclick="openModal('contacts', 'Pay anyone')">
+                    Back to Manual Input
+                </button>
+            </div>
+        `;
+    } catch (err) {
+        modalBody.innerHTML = `<p style="text-align:center; color:var(--danger); padding:20px;">Failed to load contacts.</p>`;
+    }
+}
+
+function filterInAppContacts(query) {
+    const list = document.getElementById('in-app-contacts-list');
+    if (!list) return;
+    const q = (query || '').toLowerCase();
+    const rows = list.querySelectorAll('.inapp-contact-row');
+    rows.forEach(r => {
+        const text = r.textContent.toLowerCase();
+        r.style.display = text.includes(q) ? 'flex' : 'none';
+    });
+}
+
 
 
