@@ -1,13 +1,18 @@
-# 🇮🇳 BharatPay - Digital Payment App
+# 🇮🇳 Arya Pay - Digital Payment & Financial Super App
 
-BharatPay is a full-stack digital payment simulation inspired by Google Pay. It features a modern glassmorphic UI, biometric authentication simulations, and real-time transaction processing.
+Arya Pay is a full-stack digital payment simulation inspired by Google Pay. It features a modern glassmorphic UI, biometric authentication simulations, and real-time transaction processing.
 
 ## 🚀 Features
-- **Secure Authentication**: PIN-based login with biometric security mandatory for signup.
-- **Peer-to-Peer Payments**: Send money to other users via phone or UPI ID.
-- **Bank Linking**: Link multiple bank accounts and check balances.
+- **Secure Authentication**: PIN-based login with biometric security (WebAuthn).
+- **Peer-to-Peer Payments**: Send money to other users via phone, UPI ID, or interactive chat view.
+- **Real-Time Bank Accounts**: Link multiple bank accounts with live 4-digit UPI PIN balance verification.
+- **Mobile Recharge**: Enter any 10-digit mobile number across India with operator auto-detection and 1-tap popular plan selectors.
+- **Credit For You**:
+  - **Flex by Arya Bank**: RuPay UPI Virtual Credit Card with ₹50,000 pre-approved limit.
+  - **Personal Loans**: Instant pre-approved loan up to ₹10 Lakhs with dynamic EMI calculator and instant direct deposit.
+  - **Pocket Money**: Daily spending sub-wallet with customizable monthly allowance and daily limits.
 - **Bill Payments**: Recharge mobile plans and pay utility bills.
-- **Transaction History**: Track all your spending and earnings in one place.
+- **Transaction History**: Track all your spending and earnings with shareable receipts.
 - **Rewards System**: Earn scratch cards and cashback on every transaction.
 
 ## 🛠️ Tech Stack

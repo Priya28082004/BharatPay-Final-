@@ -11,7 +11,7 @@ app.use(cors());
 app.use(express.json());
 
 // Health check for Render/Vercel monitoring
-app.get('/api/health', (req, res) => res.status(200).json({ status: 'UP', message: 'BharatPay Backend is running' }));
+app.get('/api/health', (req, res) => res.status(200).json({ status: 'UP', message: 'Arya Pay Backend is running' }));
 
 // Static file serving - more robust for production
 const frontendPath = path.join(__dirname, '../frontend');
@@ -46,9 +46,23 @@ const userSchema = new mongoose.Schema({
     upi_id: { type: String, unique: true },
     bank_name: String,
     atm_card: String,
-    rewards_earned: { type: Number, default: 0 }
+    rewards_earned: { type: Number, default: 0 },
+    profile_photo: { type: String, default: "" },
+    flex_active: { type: Boolean, default: false },
+    flex_limit: { type: Number, default: 50000 },
+    flex_available: { type: Number, default: 50000 },
+    flex_card_number: { type: String, default: "4215 8892 3140 8842" },
+    pocket_money_active: { type: Boolean, default: false },
+    pocket_money_balance: { type: Number, default: 0 },
+    pocket_money_allowance: { type: Number, default: 2000 },
+    pocket_money_daily_limit: { type: Number, default: 500 }
 });
 const User = mongoose.model('User', userSchema);
+
+// Helper to generate a unique 12-digit UPI reference number
+function generateTransactionId() {
+    return 'BHARAT' + Math.floor(100000000000 + Math.random() * 900000000000).toString();
+}
 
 const transactionSchema = new mongoose.Schema({
     user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
@@ -57,18 +71,21 @@ const transactionSchema = new mongoose.Schema({
     type: String, // 'paid', 'recharge', 'received'
     amount: Number,
     title: String,
-    date: { type: Date, default: Date.now }
+    date: { type: Date, default: Date.now },
+    transaction_id: { type: String, default: generateTransactionId }
 });
 const Transaction = mongoose.model('Transaction', transactionSchema);
 
 const bankAccountSchema = new mongoose.Schema({
     user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    type: String,
+    type: { type: String, default: 'Savings Account' },
     bank_name: String,
     account_number: String,
+    ifsc: { type: String, default: '' },
     balance: Number,
     pin: String,
-    status: { type: String, default: 'linked' }
+    status: { type: String, default: 'linked' },
+    is_primary: { type: Boolean, default: false }
 });
 const BankAccount = mongoose.model('BankAccount', bankAccountSchema);
 
@@ -138,6 +155,18 @@ app.post('/api/signup', async (req, res) => {
         const newUser = new User({ phone, name, pin, balance: initialBalance, upi_id, bank_name, atm_card, rewards_earned: 0 });
         await newUser.save();
 
+        // Automatically create and link the primary bank account
+        const primaryBank = new BankAccount({
+            user_id: newUser._id,
+            type: 'Savings Account',
+            bank_name: bank_name,
+            account_number: atm_card,
+            balance: initialBalance,
+            pin: pin,
+            status: 'linked'
+        });
+        await primaryBank.save();
+
         res.json({ success: true, token: newUser._id, upi_id, name: newUser.name });
     } catch (err) {
         res.status(500).json({ error: 'Database error: ' + err.message });
@@ -152,6 +181,65 @@ app.post('/api/login', async (req, res) => {
         res.json({ success: true, token: user._id, name: user.name, upi_id: user.upi_id });
     } catch (err) {
         res.status(500).json({ error: 'Database error' });
+    }
+});
+
+// Active SSE clients mapped by userId
+const activeClients = {};
+
+// SSE Events Endpoint
+app.get('/api/events', (req, res) => {
+    const token = req.query.token;
+    if (!token || !mongoose.Types.ObjectId.isValid(token)) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+    const userId = token.toString();
+
+    res.writeHead(200, {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+        'Access-Control-Allow-Origin': '*'
+    });
+
+    // Write a connection confirmation event
+    res.write(`data: ${JSON.stringify({ type: 'CONNECTED' })}\n\n`);
+
+    activeClients[userId] = res;
+
+    req.on('close', () => {
+        if (activeClients[userId] === res) {
+            delete activeClients[userId];
+        }
+    });
+});
+
+app.post('/api/user/update', async (req, res) => {
+    try {
+        const userId = req.headers['authorization'];
+        if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+
+        const { name, pin, bank_name, atm_card, profile_photo } = req.body;
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ error: 'User not found' });
+
+        if (name) user.name = name.trim();
+        if (pin) {
+            if (!/^\d{4}$/.test(pin)) {
+                return res.status(400).json({ error: 'UPI PIN must be exactly 4 digits' });
+            }
+            user.pin = pin;
+        }
+        if (bank_name) user.bank_name = bank_name.trim();
+        if (atm_card) user.atm_card = atm_card.trim();
+        if (profile_photo !== undefined) user.profile_photo = profile_photo;
+
+        await user.save();
+        res.json({ success: true, name: user.name, upi_id: user.upi_id, profile_photo: user.profile_photo });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
 });
 
@@ -206,15 +294,21 @@ app.get('/api/recent_contacts', async (req, res) => {
         if (contactIds.length === 0) {
             const allUsers = await User.find({ _id: { $ne: userId } }).limit(5);
             if (allUsers.length > 0) {
-                return res.json(allUsers.map(u => ({ id: u._id, name: u.name, initials: u.name.charAt(0).toUpperCase(), color: '#'+Math.floor(Math.random()*16777215).toString(16).padStart(6, '0'), phone: u.phone, upi_id: u.upi_id })));
+                return res.json(allUsers.map(u => ({ id: u._id, name: u.name, initials: u.name.charAt(0).toUpperCase(), color: '#'+Math.floor(Math.random()*16777215).toString(16).padStart(6, '0'), phone: u.phone, upi_id: u.upi_id, profile_photo: u.profile_photo || '' })));
             } else {
                 const dummy = await Contact.find();
-                return res.json(dummy.map(d => ({ id: d._id, name: d.name, initials: d.initials, color: d.color, phone: '1234567890', upi_id: 'dummy@bharat' })));
+                return res.json(dummy.map(d => ({ id: d._id, name: d.name, initials: d.initials, color: d.color, phone: '1234567890', upi_id: 'dummy@bharat', profile_photo: '' })));
             }
         }
 
         const recentUsers = await User.find({ _id: { $in: contactIds } });
-        res.json(recentUsers.map(u => ({ id: u._id, name: u.name, initials: u.name.charAt(0).toUpperCase(), color: '#'+Math.floor(Math.random()*16777215).toString(16).padStart(6, '0'), phone: u.phone, upi_id: u.upi_id })));
+        
+        // Chronological sort to match transaction history recency order
+        recentUsers.sort((a, b) => {
+            return contactIds.indexOf(a._id.toString()) - contactIds.indexOf(b._id.toString());
+        });
+
+        res.json(recentUsers.map(u => ({ id: u._id, name: u.name, initials: u.name.charAt(0).toUpperCase(), color: '#'+Math.floor(Math.random()*16777215).toString(16).padStart(6, '0'), phone: u.phone, upi_id: u.upi_id, profile_photo: u.profile_photo || '' })));
     } catch (err) {
         console.error('Error in /api/recent_contacts:', err);
         res.status(500).json({ error: err.message });
@@ -261,8 +355,36 @@ app.get('/api/banks', async (req, res) => {
         const userId = getUserId(req);
         if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
-        const banks = await BankAccount.find({ user_id: userId });
-        res.json(banks.map(b => ({ id: b._id, type: b.type, bank_name: b.bank_name, account_number: b.account_number, status: b.status })));
+        let banks = await BankAccount.find({ user_id: userId });
+        
+        // Auto-seed primary bank from user profile if user has no bank accounts yet
+        if (banks.length === 0) {
+            const user = await User.findById(userId);
+            if (user && user.bank_name) {
+                const primaryBank = new BankAccount({
+                    user_id: user._id,
+                    type: 'Savings Account',
+                    bank_name: user.bank_name,
+                    account_number: user.atm_card || '987654321012',
+                    balance: user.balance || 15000,
+                    pin: user.pin,
+                    status: 'linked',
+                    is_primary: true
+                });
+                await primaryBank.save();
+                banks = [primaryBank];
+            }
+        }
+
+        res.json(banks.map(b => ({
+            id: b._id,
+            type: b.type || 'Savings Account',
+            bank_name: b.bank_name,
+            account_number: b.account_number,
+            status: b.status,
+            balance: b.balance,
+            is_primary: b.is_primary || false
+        })));
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -270,17 +392,40 @@ app.get('/api/banks', async (req, res) => {
 
 app.post('/api/banks', async (req, res) => {
     try {
-        const { type, bank_name, account_number, pin } = req.body;
+        const { type, bank_name, account_number, pin, ifsc } = req.body;
         const userId = getUserId(req);
         if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+        if (!bank_name || !account_number || !pin) {
+            return res.status(400).json({ error: 'Bank name, account number, and 4-digit UPI PIN are required' });
+        }
+        if (!/^\d{4}$/.test(pin.toString().trim())) {
+            return res.status(400).json({ error: 'UPI PIN must be exactly 4 digits' });
+        }
 
-        const fakeBalance = Math.floor(Math.random() * 50000) + 500;
+        const existingCount = await BankAccount.countDocuments({ user_id: userId });
+        const randomStartingBalance = Math.floor(Math.random() * 45000) + 5000;
         
         const newBank = new BankAccount({
-            user_id: userId, type: type || 'Bank', bank_name, account_number, balance: fakeBalance, pin, status: 'linked'
+            user_id: userId,
+            type: type || 'Savings Account',
+            bank_name: bank_name.trim(),
+            account_number: account_number.toString().trim(),
+            ifsc: ifsc ? ifsc.trim().toUpperCase() : '',
+            balance: randomStartingBalance,
+            pin: pin.toString().trim(),
+            status: 'linked',
+            is_primary: existingCount === 0
         });
         await newBank.save();
-        res.json({ success: true, id: newBank._id, balance: fakeBalance });
+        res.json({
+            success: true,
+            id: newBank._id,
+            bank_name: newBank.bank_name,
+            account_number: newBank.account_number,
+            balance: randomStartingBalance,
+            type: newBank.type,
+            is_primary: newBank.is_primary
+        });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -291,12 +436,27 @@ app.post('/api/banks/balance', async (req, res) => {
         const { bank_id, pin } = req.body;
         const userId = getUserId(req);
         if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+        if (!pin) return res.status(400).json({ error: 'UPI PIN is required' });
 
         const bank = await BankAccount.findOne({ _id: bank_id, user_id: userId });
-        if (!bank) return res.status(404).json({ error: 'Account not found' });
-        if (bank.pin !== pin) return res.status(401).json({ error: 'Incorrect UPI PIN' });
+        if (!bank) return res.status(404).json({ error: 'Bank account not found' });
+        if (bank.pin !== pin.toString().trim()) {
+            return res.status(401).json({ error: 'Incorrect UPI PIN. Please try again.' });
+        }
 
-        res.json({ success: true, balance: bank.balance });
+        // If it's the primary bank, ensure user balance is in sync
+        const user = await User.findById(userId);
+        if (bank.is_primary && user) {
+            bank.balance = user.balance;
+            await bank.save();
+        }
+
+        res.json({
+            success: true,
+            balance: bank.balance,
+            bank_name: bank.bank_name,
+            account_number: bank.account_number
+        });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -312,49 +472,124 @@ app.post('/api/pay', async (req, res) => {
 
         const sender = await User.findById(userId);
         if (!sender) return res.status(404).json({ error: 'User not found' });
-        if (pin && sender.pin !== pin) return res.status(401).json({ error: 'Incorrect UPI PIN' });
+        if (pin && sender.pin !== pin.toString().trim()) return res.status(401).json({ error: 'Incorrect UPI PIN' });
         if (sender.balance < amount) return res.status(400).json({ error: 'Insufficient funds' });
 
         let recipient = null;
         let busId = null;
+        let dummyContact = null;
+
         if (recipientIdentifier) {
-            recipient = await User.findOne({ $or: [{ phone: recipientIdentifier }, { upi_id: recipientIdentifier }, { name: recipientIdentifier }] });
+            const rawId = recipientIdentifier.toString().trim();
+
+            // 1. Direct match by ObjectId
+            if (mongoose.Types.ObjectId.isValid(rawId)) {
+                recipient = await User.findById(rawId);
+            }
+
+            // 2. Exact match by phone, UPI ID, or name excluding sender
+            if (!recipient || recipient._id.toString() === sender._id.toString()) {
+                recipient = await User.findOne({
+                    _id: { $ne: sender._id },
+                    $or: [
+                        { phone: rawId },
+                        { upi_id: rawId },
+                        { name: { $regex: new RegExp(`^${rawId}$`, 'i') } }
+                    ]
+                });
+            }
+
+            // 3. Case-insensitive name match excluding sender
             if (!recipient) {
-                const bus = await Business.findOne({ name: { $regex: new RegExp(recipientIdentifier, "i") } });
+                const escaped = rawId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                recipient = await User.findOne({
+                    _id: { $ne: sender._id },
+                    name: { $regex: new RegExp(escaped, 'i') }
+                });
+            }
+
+            // 4. Check Business
+            if (!recipient) {
+                const escaped = rawId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                const bus = await Business.findOne({ name: { $regex: new RegExp(escaped, 'i') } });
                 if (bus) busId = bus._id;
-                else {
-                    const buses = await Business.find();
-                    if (buses.length > 0) busId = buses[Math.floor(Math.random() * buses.length)]._id;
-                }
+            }
+
+            // 5. Check dummy Contacts collection
+            if (!recipient && !busId) {
+                const escaped = rawId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                dummyContact = await Contact.findOne({
+                    $or: [
+                        { _id: mongoose.Types.ObjectId.isValid(rawId) ? rawId : null },
+                        { name: { $regex: new RegExp(escaped, 'i') } }
+                    ]
+                });
+            }
+
+            // Fallback to random business if none matched
+            if (!recipient && !busId && !dummyContact) {
+                const buses = await Business.find();
+                if (buses.length > 0) busId = buses[Math.floor(Math.random() * buses.length)]._id;
             }
         }
 
         if (recipient && recipient._id.toString() === sender._id.toString()) {
-             return res.status(400).json({ error: 'Cannot pay yourself' });
+            return res.status(400).json({ error: 'Cannot pay yourself' });
         }
 
         // Deduct from sender and add random reward (₹1 to ₹15)
         sender.balance -= amount;
         const earnedReward = Math.floor(Math.random() * 15) + 1;
-        sender.rewards_earned += earnedReward;
+        sender.rewards_earned = (sender.rewards_earned || 0) + earnedReward;
         await sender.save();
 
-        const txTitle = recipient ? `Paid to ${recipient.name}` : title;
+        // Also sync primary bank balance for sender
+        await BankAccount.findOneAndUpdate(
+            { user_id: sender._id, is_primary: true },
+            { balance: sender.balance }
+        );
+
+        let recipientDisplayName = 'Merchant';
+        let targetId = null;
+        let targetType = 'Business';
+
+        if (recipient) {
+            recipientDisplayName = recipient.name;
+            targetId = recipient._id;
+            targetType = 'User';
+        } else if (dummyContact) {
+            recipientDisplayName = dummyContact.name;
+            targetId = dummyContact._id;
+            targetType = 'User';
+        } else if (busId) {
+            const b = await Business.findById(busId);
+            recipientDisplayName = b ? b.name : (recipientIdentifier || 'Business');
+            targetId = busId;
+            targetType = 'Business';
+        }
+
+        const txTitle = recipientDisplayName ? `Paid to ${recipientDisplayName}` : (title || 'Payment');
 
         const senderTx = new Transaction({
             user_id: sender._id,
-            target_id: recipient ? recipient._id : (busId || null),
-            target_type: recipient ? 'User' : 'Business',
+            target_id: targetId,
+            target_type: targetType,
             type: 'paid',
             amount: amount,
             title: txTitle
         });
         await senderTx.save();
 
-        // Add to recipient
+        // Add to recipient if registered user
         if (recipient) {
             recipient.balance += amount;
             await recipient.save();
+
+            // Sync recipient's primary bank account
+            await BankAccount.findOneAndUpdate(
+                { user_id: recipient._id, is_primary: true },
+                { balance: recipient.balance }
+            );
 
             const receiverTx = new Transaction({
                 user_id: recipient._id,
@@ -365,17 +600,36 @@ app.post('/api/pay', async (req, res) => {
                 title: `Received from ${sender.name}`
             });
             await receiverTx.save();
+
+            // Real-time Push Notification via SSE
+            const recipientRes = activeClients[recipient._id.toString()];
+            if (recipientRes) {
+                recipientRes.write(`data: ${JSON.stringify({
+                    type: 'PAYMENT_RECEIVED',
+                    amount: amount,
+                    senderName: sender.name,
+                    newBalance: recipient.balance
+                })}\n\n`);
+            }
         }
 
-        res.json({ success: true, newBalance: sender.balance, reward: earnedReward, recipientName: recipient ? recipient.name : 'Unknown' });
+        res.json({
+            success: true,
+            newBalance: sender.balance,
+            reward: earnedReward,
+            recipientName: recipientDisplayName,
+            transactionId: senderTx.transaction_id,
+            date: senderTx.date
+        });
     } catch (err) {
+        console.error('Pay error:', err);
         res.status(500).json({ error: err.message });
     }
 });
 
 app.post('/api/recharge', async (req, res) => {
     try {
-        const { amount, title, pin } = req.body;
+        const { amount, title, pin, mobile, biller } = req.body;
         const userId = getUserId(req);
         if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
@@ -396,17 +650,194 @@ app.post('/api/recharge', async (req, res) => {
             }
         }
 
+        const rechargeTitle = title || (mobile ? `${biller || 'Mobile Recharge'} (+91 ${mobile})` : 'Mobile recharge');
+
         const tx = new Transaction({
             user_id: user._id,
             target_id: bId || null,
             target_type: 'Biller',
             type: 'recharge',
             amount: amount,
-            title: title
+            title: rechargeTitle
         });
         await tx.save();
 
-        res.json({ success: true, newBalance: user.balance });
+        res.json({ success: true, newBalance: user.balance, mobile });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ==== CREDIT & LOANS APIs ====
+
+app.get('/api/credit/status', async (req, res) => {
+    try {
+        const userId = getUserId(req);
+        if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ error: 'User not found' });
+
+        res.json({
+            flex: {
+                active: !!user.flex_active,
+                limit: user.flex_limit || 50000,
+                available: user.flex_available !== undefined ? user.flex_available : 50000,
+                cardNumber: user.flex_card_number || "4215 8892 3140 8842"
+            },
+            pocketMoney: {
+                active: !!user.pocket_money_active,
+                balance: user.pocket_money_balance || 0,
+                allowance: user.pocket_money_allowance || 2000,
+                dailyLimit: user.pocket_money_daily_limit || 500
+            },
+            userBalance: user.balance,
+            userName: user.name
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/credit/flex/activate', async (req, res) => {
+    try {
+        const userId = getUserId(req);
+        if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ error: 'User not found' });
+
+        user.flex_active = true;
+        user.flex_limit = 50000;
+        user.flex_available = 50000;
+        user.flex_card_number = "4215 8892 3140 8842";
+        await user.save();
+
+        // Also ensure linked as BankAccount for UPI credit card access
+        const existingCard = await BankAccount.findOne({ user_id: user._id, bank_name: 'Arya Bank Flex' });
+        if (!existingCard) {
+            const flexCardAccount = new BankAccount({
+                user_id: user._id,
+                type: 'RuPay Credit Card',
+                bank_name: 'Arya Bank Flex',
+                account_number: '•••• 8842',
+                balance: 50000,
+                pin: user.pin || '1234',
+                status: 'linked'
+            });
+            await flexCardAccount.save();
+        }
+
+        const tx = new Transaction({
+            user_id: user._id,
+            target_type: 'Biller',
+            type: 'received',
+            amount: 50000,
+            title: 'Arya Flex Credit Card Activated (₹50,000 Credit Line)'
+        });
+        await tx.save();
+
+        res.json({
+            success: true,
+            message: 'Flex by Arya Bank activated successfully',
+            flex: {
+                active: true,
+                limit: 50000,
+                available: 50000,
+                cardNumber: user.flex_card_number
+            }
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/credit/loan/apply', async (req, res) => {
+    try {
+        const { amount, tenureMonths, pin } = req.body;
+        const userId = getUserId(req);
+        if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ error: 'User not found' });
+        if (pin && user.pin !== pin) return res.status(401).json({ error: 'Incorrect UPI PIN' });
+
+        const loanAmount = Math.min(Math.max(parseFloat(amount) || 50000, 10000), 1000000);
+        const tenure = parseInt(tenureMonths) || 12;
+
+        const monthlyRate = 0.115 / 12;
+        const emi = Math.round((loanAmount * monthlyRate * Math.pow(1 + monthlyRate, tenure)) / (Math.pow(1 + monthlyRate, tenure) - 1));
+
+        // Disburse loan into user's account balance immediately
+        user.balance += loanAmount;
+        await user.save();
+
+        // Record credit transaction
+        const tx = new Transaction({
+            user_id: user._id,
+            target_type: 'Biller',
+            type: 'received',
+            amount: loanAmount,
+            title: `Instant Personal Loan Disbursed (${tenure} Mo @ ₹${emi.toLocaleString('en-IN')}/mo)`
+        });
+        await tx.save();
+
+        res.json({
+            success: true,
+            loanAmount,
+            tenure,
+            emi,
+            newBalance: user.balance,
+            message: `₹${loanAmount.toLocaleString('en-IN')} disbursed into your account successfully!`
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/credit/pocket-money/setup', async (req, res) => {
+    try {
+        const { allowance, dailyLimit, initialTransfer, pin } = req.body;
+        const userId = getUserId(req);
+        if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ error: 'User not found' });
+        if (pin && user.pin !== pin) return res.status(401).json({ error: 'Incorrect UPI PIN' });
+
+        const transferAmt = parseFloat(initialTransfer) || 0;
+        if (transferAmt > 0) {
+            if (user.balance < transferAmt) return res.status(400).json({ error: 'Insufficient funds for initial wallet transfer' });
+            user.balance -= transferAmt;
+            user.pocket_money_balance = (user.pocket_money_balance || 0) + transferAmt;
+        }
+
+        user.pocket_money_active = true;
+        user.pocket_money_allowance = parseFloat(allowance) || 2000;
+        user.pocket_money_daily_limit = parseFloat(dailyLimit) || 500;
+        await user.save();
+
+        if (transferAmt > 0) {
+            const tx = new Transaction({
+                user_id: user._id,
+                target_type: 'Biller',
+                type: 'paid',
+                amount: transferAmt,
+                title: `Pocket Money Setup (Transferred to Sub-Wallet)`
+            });
+            await tx.save();
+        }
+
+        res.json({
+            success: true,
+            pocketMoney: {
+                active: true,
+                balance: user.pocket_money_balance,
+                allowance: user.pocket_money_allowance,
+                dailyLimit: user.pocket_money_daily_limit
+            },
+            newBalance: user.balance
+        });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -414,7 +845,7 @@ app.post('/api/recharge', async (req, res) => {
 
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`---------------------------------------------------------`);
-    console.log(`🚀 BharatPay Server is live!`);
+    console.log(`🚀 Arya Pay Server is live!`);
     console.log(`📡 Listening on Port: ${PORT}`);
     console.log(`🔗 URL: http://localhost:${PORT}`);
     console.log(`---------------------------------------------------------`);

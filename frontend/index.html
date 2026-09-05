@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Bharat Bank Mini App">
-    <title>Bharat Bank | Mini App</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <meta name="description" content="Arya Pay Mini App">
+    <title>Arya Pay | Digital Wallet</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <!-- jsQR: Real-time QR code reader from camera feed -->
@@ -16,36 +16,17 @@
     <!-- ================= LOGIN SCREEN ================= -->
     <div id="login-screen" class="app-container login-screen active">
         <div class="login-content">
-            <!-- Animated Indian Flag Showcase -->
+            <!-- Animated Indian Logo Showcase -->
             <div class="bharat-showcase">
-                <div class="waving-flag">
-                    <div class="stripe saffron"></div>
-                    <div class="stripe white">
-                        <svg class="chakra-svg" viewBox="0 0 100 100">
-                            <circle cx="50" cy="50" r="44" stroke="#000080" stroke-width="4" fill="none"/>
-                            <circle cx="50" cy="50" r="5" fill="#000080"/>
-                            <g stroke="#000080" stroke-width="1.5">
-                                <line x1="50" y1="50" x2="50" y2="6"/><line x1="50" y1="50" x2="50" y2="94"/>
-                                <line x1="50" y1="50" x2="6" y2="50"/><line x1="50" y1="50" x2="94" y2="50"/>
-                                <line x1="50" y1="50" x2="18.9" y2="18.9"/><line x1="50" y1="50" x2="81.1" y2="81.1"/>
-                                <line x1="50" y1="50" x2="81.1" y2="18.9"/><line x1="50" y1="50" x2="18.9" y2="81.1"/>
-                                <line x1="50" y1="50" x2="33.1" y2="8.9"/><line x1="50" y1="50" x2="66.9" y2="91.1"/>
-                                <line x1="50" y1="50" x2="66.9" y2="8.9"/><line x1="50" y1="50" x2="33.1" y2="91.1"/>
-                                <line x1="50" y1="50" x2="8.9" y2="33.1"/><line x1="50" y1="50" x2="91.1" y2="66.9"/>
-                                <line x1="50" y1="50" x2="91.1" y2="33.1"/><line x1="50" y1="50" x2="8.9" y2="66.9"/>
-                            </g>
-                        </svg>
-                    </div>
-                    <div class="stripe green"></div>
-                </div>
-                <h1 class="bharat-text">BHARAT</h1>
+                <img src="logo.png" style="width: 155px; height: 155px; object-fit: contain; border-radius: 28px; box-shadow: 0 10px 30px rgba(0,0,0,0.12); margin-bottom: 12px; background: white; padding: 10px; border: 1px solid rgba(0,0,0,0.06);" alt="Arya Pay">
+                <h1 class="bharat-text" style="font-size: 2.4rem; font-weight: 800; letter-spacing: 2px;">Arya Pay</h1>
             </div>
 
             <div class="login-card card-3d" id="auth-box">
                 <!-- Login Form -->
                 <div id="login-form">
                     <h2>Welcome Back</h2>
-                    <p>Unlock Bharat Bank securely.</p>
+                    <p>Unlock Arya Pay securely.</p>
                     <input type="text" id="login-phone" class="custom-input" placeholder="Phone Number">
                     <input type="password" id="login-pin" class="custom-input" placeholder="Enter 4-Digit PIN" onkeypress="if(event.key==='Enter') loginUser()">
                     <button class="btn-primary" onclick="loginUser()">Log In</button>
@@ -56,12 +37,12 @@
                         <span>Use Biometric</span>
                     </div>
 
-                    <p style="margin-top:15px; font-size:0.85rem;">New to Bharat Bank? <a href="#" style="color:var(--navy); font-weight:600; text-decoration:none;" onclick="toggleAuth('signup')">Sign Up</a></p>
+                    <p style="margin-top:15px; font-size:0.85rem;">New to Arya Pay? <a href="#" style="color:var(--navy); font-weight:600; text-decoration:none;" onclick="toggleAuth('signup')">Sign Up</a></p>
                 </div>
 
                 <!-- Sign up Form -->
                 <div id="signup-form" style="display:none; max-height: 400px; overflow-y: auto; padding-right: 5px; overflow-x: hidden;">
-                    <h2>Join Bharat Bank</h2>
+                    <h2>Join Arya Pay</h2>
                     <p>Create your secure account.</p>
                     <input type="text" id="signup-name" class="custom-input" placeholder="Full Name">
                     <input type="text" id="signup-phone" class="custom-input" placeholder="Phone Number">
@@ -88,30 +69,18 @@
             <div id="view-home" class="scroll-area view-content active">
                 <!-- Header (Only on Home) -->
                 <header class="header brand-header">
-                    <div class="brand-logo-animated">
-                        <span class="brand-bha">BHA</span>
-                        <svg class="chakra-svg-spin" viewBox="0 0 100 100">
-                            <circle cx="50" cy="50" r="44" stroke="#000080" stroke-width="6" fill="none"/>
-                            <circle cx="50" cy="50" r="5" fill="#000080"/>
-                            <g stroke="#000080" stroke-width="2">
-                                <line x1="50" y1="50" x2="50" y2="6"/><line x1="50" y1="50" x2="50" y2="94"/>
-                                <line x1="50" y1="50" x2="6" y2="50"/><line x1="50" y1="50" x2="94" y2="50"/>
-                                <line x1="50" y1="50" x2="18.9" y2="18.9"/><line x1="50" y1="50" x2="81.1" y2="81.1"/>
-                                <line x1="50" y1="50" x2="81.1" y2="18.9"/><line x1="50" y1="50" x2="18.9" y2="81.1"/>
-                                <line x1="50" y1="50" x2="33.1" y2="8.9"/><line x1="50" y1="50" x2="66.9" y2="91.1"/>
-                                <line x1="50" y1="50" x2="66.9" y2="8.9"/><line x1="50" y1="50" x2="33.1" y2="91.1"/>
-                                <line x1="50" y1="50" x2="8.9" y2="33.1"/><line x1="50" y1="50" x2="91.1" y2="66.9"/>
-                                <line x1="50" y1="50" x2="91.1" y2="33.1"/><line x1="50" y1="50" x2="8.9" y2="66.9"/>
-                            </g>
-                        </svg>
-                        <span class="brand-rat">RAT</span>
-                        <span class="brand-pay">PAY</span>
+                    <div class="brand-logo-animated" style="display:flex; align-items:center; gap:10px;">
+                        <img src="logo.png" style="height:54px; width:54px; object-fit:contain; border-radius:12px; background:white; padding:4px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 1px solid rgba(0,0,0,0.06);" alt="Arya Pay">
+                        <span style="font-family:'Outfit',sans-serif; font-weight:800; font-size:1.55rem; color:var(--navy); letter-spacing:-0.5px;">Arya<span style="color:#d48817; margin-left:3px;">Pay</span></span>
                     </div>
                     <div class="search-bar 3d-card" style="flex:1; margin: 0 15px;">
                         <i class="fas fa-search search-icon"></i>
                         <input type="text" placeholder="Pay friends...">
                     </div>
                     <div class="header-right">
+                        <button id="theme-toggle-btn" onclick="toggleTheme()" style="background:transparent; border:none; color:var(--navy); font-size:1.25rem; cursor:pointer; margin-right:10px; display:flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:50%; transition:all 0.2s;" title="Toggle Day/Night Mode">
+                            <i class="fas fa-moon"></i>
+                        </button>
                         <img src="https://img.icons8.com/color/48/000000/india.png" class="animated-flag-icon" alt="India">
                         <div class="profile-avatar" onclick="switchTab('you')" style="margin-left: 10px;">
                             <img src="https://ui-avatars.com/api/?name=User&background=000080&color=fff" alt="Profile" id="user-avatar-home">
@@ -119,7 +88,7 @@
                     </div>
                 </header>
 
-                <div class="promo-banner 3d-card" onclick="alert('Simulation: Set up Pocket Money feature coming soon!')">
+                <div class="promo-banner 3d-card" onclick="openModal('promo', 'Pocket Money')">
                     <div class="promo-text">
                         <h3>No more payment links</h3>
                         <p>Pay for it yourself</p>
@@ -224,7 +193,7 @@
                         <!-- Populated dynamically via JS -->
                     </div>
                     
-                    <div class="bank-item" style="border-top: 1px solid #f0f0f0; margin-top: 10px; padding-top: 15px; cursor: pointer;" onclick="openModal('bank', 'Add bank account')">
+                    <div class="bank-item" style="border-top: 1px solid #f0f0f0; margin-top: 10px; padding-top: 15px; cursor: pointer;" onclick="openModal('add_bank', 'Link bank account')">
                         <div class="bank-icon" style="background:#e8f0fe; color:#1a73e8; display:flex; align-items:center; justify-content:center; width:40px; height:40px; border-radius:50%;"><i class="fas fa-plus"></i></div>
                         <div class="bank-info" style="flex:1;">
                             <h3 style="margin:0; font-size:1rem; color:#1f1f1f;">Add bank account or card</h3>
@@ -247,17 +216,17 @@
                 
                 <!-- Offers & Loans Section (Moved from Home) -->
                 <section class="section-container promo-section" style="margin: 0 20px;">
-                    <div class="promo-card flex-card card-3d" onclick="openModal('promo', 'Flex by Bharat Bank')">
-                        <div class="promo-icon animated-float"><img src="https://img.icons8.com/color/48/000000/bank-cards.png" alt="Credit Card"></div>
+                    <div class="promo-card flex-card card-3d" onclick="openModal('promo', 'Flex by Arya Bank')">
+                        <div class="promo-icon animated-float" style="background:#e8f0fe; color:#1a73e8; width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.3rem;"><i class="fas fa-credit-card"></i></div>
                         <div class="promo-content">
-                            <h3>Flex by Bharat Bank <span class="new-tag">New</span></h3>
+                            <h3>Flex by Arya Bank <span class="new-tag">New</span></h3>
                             <p>UPI credit card made simple</p>
                             <span class="promo-action">Check details <i class="fas fa-arrow-right"></i></span>
                         </div>
                     </div>
 
                     <div class="promo-card loan-card card-3d" onclick="openModal('promo', 'Personal Loan')">
-                        <div class="promo-icon animated-pulse"><img src="https://img.icons8.com/color/48/000000/money-bag-rupee.png" alt="Loan"></div>
+                        <div class="promo-icon animated-pulse" style="background:#fef3c7; color:#d97706; width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.3rem;"><i class="fas fa-hand-holding-usd"></i></div>
                         <div class="promo-content">
                             <h3>Personal loan</h3>
                             <p>Up to ₹10 lakh, instant approval</p>
@@ -266,7 +235,7 @@
                     </div>
 
                     <div class="promo-card pocket-card card-3d" onclick="openModal('promo', 'Pocket Money')">
-                        <div class="promo-icon animated-bounce"><img src="https://img.icons8.com/color/48/000000/wallet.png" alt="Pocket Money"></div>
+                        <div class="promo-icon animated-bounce" style="background:#fce7f3; color:#db2777; width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.3rem;"><i class="fas fa-wallet"></i></div>
                         <div class="promo-content">
                             <h3>No more payment links</h3>
                             <p>Pay for it yourself</p>
@@ -295,15 +264,17 @@
                     <div class="you-header-content">
                         <div class="you-header-info">
                             <h2 id="profile-name">User Name</h2>
-                            <p class="upi-id">UPI ID:<br><span id="profile-upi">user@bharat</span></p>
+                            <p class="upi-id">UPI ID:<br><span id="profile-upi">user@aryapay</span></p>
                             <p class="phone-no" id="profile-phone">9999999999</p>
                             <div class="upi-number-badge">
                                 <i class="fas fa-check-circle"></i> UPI number
                             </div>
                         </div>
-                        <div class="you-avatar-container" onclick="openModal('qr', 'Your QR')">
-                            <img src="https://ui-avatars.com/api/?name=User&background=FF9933&color=fff" class="you-large-avatar" id="profile-avatar" alt="Profile">
-                            <div class="qr-float-btn"><i class="fas fa-qrcode"></i></div>
+                        <div class="you-avatar-container" style="position: relative;">
+                            <img src="https://ui-avatars.com/api/?name=User&background=FF9933&color=fff" class="you-large-avatar" id="profile-avatar" alt="Profile" onclick="document.getElementById('profile-photo-input').click()" style="cursor: pointer;">
+                            <div class="photo-upload-overlay" onclick="document.getElementById('profile-photo-input').click()" style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.6); color: white; font-size: 0.7rem; padding: 4px 0; text-align: center; border-radius: 0 0 100px 100px; cursor: pointer; border: 1px solid rgba(255,255,255,0.2); transition: all 0.2s;"><i class="fas fa-camera"></i> Edit</div>
+                            <div class="qr-float-btn" onclick="openModal('qr', 'Your QR')" style="z-index: 10;"><i class="fas fa-qrcode"></i></div>
+                            <input type="file" id="profile-photo-input" accept="image/*" style="display:none;" onchange="uploadProfilePhoto(this)">
                         </div>
                     </div>
                 </div>
@@ -399,6 +370,14 @@
                         <div class="you-list-main">
                             <h4>Manage account</h4>
                             <p>View and edit your profile details</p>
+                        </div>
+                    </div>
+
+                    <div class="you-settings-item" onclick="toggleTheme()">
+                        <i class="fas fa-adjust you-list-icon"></i>
+                        <div class="you-list-main">
+                            <h4>Theme</h4>
+                            <p id="current-theme-label">Light Mode</p>
                         </div>
                     </div>
 

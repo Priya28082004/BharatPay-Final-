@@ -403,3 +403,754 @@ body {
 .nav-item#nav-money.active i { color: white; margin-bottom: 0; }
 
 .page-header { background: linear-gradient(135deg, var(--saffron) 0%, #ffffff 50%, var(--green) 100%); -webkit-background-clip: text; color: transparent; text-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+
+/* ================= DARK THEME OVERRIDES ================= */
+body.dark-theme {
+    background: #090d16 !important;
+}
+
+body.dark-theme .app-container {
+    --bg-main: #0b0f19;
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --card-bg: #111827;
+    --card-border: rgba(255, 255, 255, 0.08);
+    --navy: #60a5fa; /* lighter blue for dark theme readability */
+}
+
+body.dark-theme .view-content {
+    background: linear-gradient(180deg, rgba(255,153,51,0.03) 0%, #111827 30%, rgba(19,136,8,0.03) 100%) !important;
+}
+
+body.dark-theme .login-screen,
+body.dark-theme .login-card,
+body.dark-theme .search-bar,
+body.dark-theme .actions-grid,
+body.dark-theme .badge-icon,
+body.dark-theme .utilities-grid,
+body.dark-theme .credit-card,
+body.dark-theme .settings-list,
+body.dark-theme .payment-methods-card,
+body.dark-theme .success-content,
+body.dark-theme .chat-header,
+body.dark-theme .chat-action-bar,
+body.dark-theme .modal-content,
+body.dark-theme .banks-list,
+body.dark-theme .you-scenic-header,
+body.dark-theme #chat-screen,
+body.dark-theme .chat-header,
+body.dark-theme .chat-action-bar {
+    background-color: var(--card-bg) !important;
+    background: var(--card-bg) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--card-border) !important;
+}
+
+body.dark-theme input.custom-input,
+body.dark-theme select.custom-input,
+body.dark-theme .search-bar input,
+body.dark-theme #contact-input,
+body.dark-theme #number-input,
+body.dark-theme #pay-amount,
+body.dark-theme #pay-note,
+body.dark-theme #pay-pin,
+body.dark-theme #recharge-amount,
+body.dark-theme #recharge-pin,
+body.dark-theme #check-balance-pin {
+    background-color: #1f2937 !important;
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+body.dark-theme .pm-item,
+body.dark-theme .util-item,
+body.dark-theme .action-item,
+body.dark-theme .badge-icon,
+body.dark-theme .util-icon {
+    color: var(--text-primary) !important;
+}
+
+body.dark-theme h1,
+body.dark-theme h2,
+body.dark-theme h3,
+body.dark-theme h4,
+body.dark-theme span,
+body.dark-theme p,
+body.dark-theme strong,
+body.dark-theme div {
+    color: inherit;
+}
+
+body.dark-theme .bottom-nav {
+    background-color: #111827 !important;
+    border-top: 1px solid var(--card-border) !important;
+}
+
+body.dark-theme .promo-card,
+body.dark-theme .you-pill,
+body.dark-theme .pm-icon-wrapper,
+body.dark-theme .spec-btn {
+    background-color: #1f2937 !important;
+    color: var(--text-primary) !important;
+    border-color: var(--card-border) !important;
+}
+
+body.dark-theme .people-grid span,
+body.dark-theme .utilities-grid span,
+body.dark-theme .businesses-grid span {
+    color: var(--text-secondary) !important;
+}
+
+body.dark-theme .tx-item {
+    background-color: #1f2937 !important;
+    color: var(--text-primary) !important;
+}
+
+body.dark-theme .page-header {
+    background: linear-gradient(135deg, var(--saffron) 0%, #60a5fa 50%, var(--green) 100%) !important;
+    -webkit-background-clip: text !important;
+    color: transparent !important;
+}
+
+body.dark-theme .modal-header h3 {
+    color: var(--text-primary) !important;
+}
+
+body.dark-theme .chat-input-wrapper {
+    background-color: #1f2937 !important;
+    border-color: var(--card-border) !important;
+}
+body.dark-theme .chat-input-wrapper input {
+    color: #ffffff !important;
+}
+
+/* ================= REAL-TIME BANK ACCOUNTS & PIN STYLING ================= */
+.bank-cards-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.bank-card-modern {
+    background: linear-gradient(145deg, #ffffff, #f8fafc);
+    border: 1px solid #e2e8f0;
+    border-radius: 20px;
+    padding: 18px 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.bank-card-modern:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+}
+
+.bank-card-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 12px;
+}
+
+.bank-emblem {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: white;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+    flex-shrink: 0;
+}
+
+.bank-emblem.sbi { background: linear-gradient(135deg, #0076bf, #004b7a); }
+.bank-emblem.hdfc { background: linear-gradient(135deg, #004c8f, #002244); }
+.bank-emblem.icici { background: linear-gradient(135deg, #b02a30, #7a1419); }
+.bank-emblem.axis { background: linear-gradient(135deg, #97144d, #5d072c); }
+.bank-emblem.kotak { background: linear-gradient(135deg, #e31837, #9b0b1f); }
+.bank-emblem.pnb { background: linear-gradient(135deg, #a21a24, #6e0d15); }
+.bank-emblem.bob { background: linear-gradient(135deg, #f26522, #c34409); }
+.bank-emblem.default { background: linear-gradient(135deg, #000080, #1a237e); }
+
+.bank-card-titles {
+    flex: 1;
+}
+
+.bank-card-titles h3 {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--navy);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.bank-badge-primary {
+    font-size: 0.65rem;
+    font-weight: 700;
+    background: #e8f5e9;
+    color: #2e7d32;
+    padding: 2px 8px;
+    border-radius: 10px;
+    border: 1px solid #c8e6c9;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.bank-card-titles p {
+    margin: 3px 0 0;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.bank-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 12px;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    margin-top: 5px;
+}
+
+.bank-check-btn {
+    background: #e8f0fe;
+    color: #1a73e8;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+}
+
+.bank-check-btn:hover {
+    background: #1a73e8;
+    color: white;
+}
+
+.balance-reveal-box {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 12px;
+    padding: 10px 14px;
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    animation: fadeIn 0.3s ease;
+}
+
+.balance-reveal-box .bal-label {
+    font-size: 0.75rem;
+    color: #166534;
+    font-weight: 600;
+}
+
+.balance-reveal-box .bal-amt {
+    font-size: 1.15rem;
+    color: #15803d;
+    font-weight: 800;
+}
+
+/* Add Bank Button */
+.btn-add-bank {
+    width: 100%;
+    background: white;
+    border: 2px dashed #cbd5e1;
+    border-radius: 18px;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: var(--navy);
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 10px;
+}
+
+.btn-add-bank:hover {
+    border-color: var(--navy);
+    background: rgba(0, 0, 128, 0.02);
+    transform: translateY(-1px);
+}
+
+.btn-add-bank i {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #e8f0fe;
+    color: #1a73e8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+}
+
+/* Popular Banks Selection Grid */
+.popular-banks-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin: 15px 0;
+}
+
+.popular-bank-tile {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 12px 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+}
+
+.popular-bank-tile:hover, .popular-bank-tile.selected {
+    border-color: var(--navy);
+    background: #f0f4ff;
+    box-shadow: 0 4px 12px rgba(0, 0, 128, 0.08);
+}
+
+.popular-bank-tile.selected {
+    outline: 2px solid var(--navy);
+}
+
+.popular-bank-tile span {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--navy);
+    line-height: 1.2;
+}
+
+/* Chat Payment Bubble */
+.chat-tx-bubble {
+    align-self: flex-end;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px 18px 4px 18px;
+    padding: 14px 18px;
+    max-width: 80%;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
+    margin: 6px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.chat-tx-bubble.received {
+    align-self: flex-start;
+    border-radius: 18px 18px 18px 4px;
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+}
+
+.chat-tx-bubble .tx-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+}
+
+.chat-tx-bubble .tx-amount {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: var(--navy);
+}
+
+.chat-tx-bubble.received .tx-amount {
+    color: #166534;
+}
+
+.chat-tx-bubble .tx-badge {
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.chat-tx-bubble.sent .tx-badge {
+    background: #e8f0fe;
+    color: #1a73e8;
+}
+
+.chat-tx-bubble.received .tx-badge {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.chat-tx-bubble .tx-meta {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Dark theme overrides for bank components */
+body.dark-theme .bank-card-modern,
+body.dark-theme .btn-add-bank,
+body.dark-theme .popular-bank-tile,
+body.dark-theme .chat-tx-bubble {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+    color: #f1f5f9 !important;
+}
+
+body.dark-theme .bank-card-titles h3,
+body.dark-theme .popular-bank-tile span,
+body.dark-theme .btn-add-bank,
+body.dark-theme .chat-tx-bubble .tx-amount {
+    color: #f1f5f9 !important;
+}
+
+body.dark-theme .balance-reveal-box {
+    background: rgba(22, 101, 52, 0.2) !important;
+    border-color: rgba(34, 197, 94, 0.3) !important;
+}
+
+body.dark-theme .balance-reveal-box .bal-label {
+    color: #86efac !important;
+}
+
+body.dark-theme .balance-reveal-box .bal-amt {
+    color: #4ade80 !important;
+}
+
+/* ================= MOBILE RECHARGE PHONE & PLAN STYLES ================= */
+.phone-input-group {
+    display: flex;
+    align-items: center;
+    background: #ffffff;
+    border: 1.5px solid var(--card-border);
+    border-radius: 12px;
+    padding: 0 14px;
+    transition: all 0.2s ease;
+    margin-bottom: 6px;
+}
+
+.phone-input-group:focus-within {
+    border-color: var(--saffron);
+    box-shadow: 0 0 0 3px rgba(255, 153, 51, 0.15);
+}
+
+.phone-country-code {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 700;
+    color: var(--navy);
+    font-size: 0.95rem;
+    padding-right: 12px;
+    border-right: 1.5px solid #e2e8f0;
+    user-select: none;
+}
+
+.phone-input-group input {
+    flex: 1;
+    border: none !important;
+    outline: none !important;
+    padding: 13px 12px !important;
+    font-size: 1.05rem !important;
+    font-weight: 600 !important;
+    color: var(--navy) !important;
+    background: transparent !important;
+    font-family: 'Outfit', sans-serif !important;
+    letter-spacing: 0.5px;
+    box-shadow: none !important;
+    transform: none !important;
+    margin-bottom: 0 !important;
+}
+
+.phone-input-group .phone-icon {
+    color: var(--text-secondary);
+    font-size: 1.05rem;
+}
+
+.recharge-chips-wrapper {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.recharge-plan-chip {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1.5px solid var(--card-border);
+    background: #fafbfc;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: left;
+}
+
+.recharge-plan-chip:hover {
+    border-color: var(--saffron);
+    background: #fff8f0;
+    transform: translateY(-1px);
+}
+
+.recharge-plan-chip.active {
+    border-color: var(--saffron);
+    background: rgba(255, 153, 51, 0.08);
+    box-shadow: 0 2px 6px rgba(255, 153, 51, 0.15);
+}
+
+.recharge-plan-chip .plan-amt {
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--navy);
+}
+
+.recharge-plan-chip .plan-detail {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+
+/* Dark mode for mobile recharge components */
+body.dark-theme .phone-input-group {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+}
+
+body.dark-theme .phone-country-code {
+    color: #f1f5f9 !important;
+    border-right-color: #334155 !important;
+}
+
+body.dark-theme .phone-input-group input {
+    color: #f1f5f9 !important;
+}
+
+body.dark-theme .recharge-plan-chip {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+}
+
+body.dark-theme .recharge-plan-chip .plan-amt {
+    color: #f1f5f9 !important;
+}
+
+body.dark-theme .recharge-plan-chip .plan-detail {
+    color: #94a3b8 !important;
+}
+
+body.dark-theme .recharge-plan-chip:hover,
+body.dark-theme .recharge-plan-chip.active {
+    background: rgba(255, 153, 51, 0.15) !important;
+    border-color: var(--saffron) !important;
+}
+
+/* ================= CREDIT FOR YOU COMPONENT STYLES ================= */
+.virtual-credit-card {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+    border-radius: 20px;
+    padding: 24px;
+    color: #ffffff;
+    box-shadow: 0 15px 35px rgba(15, 23, 42, 0.25);
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.virtual-credit-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 250px;
+    height: 250px;
+    background: radial-gradient(circle, rgba(255, 153, 51, 0.25) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.virtual-credit-card .card-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.emv-chip {
+    width: 42px;
+    height: 30px;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    border-radius: 6px;
+    box-shadow: inset 0 0 4px rgba(0,0,0,0.3);
+    position: relative;
+}
+
+.emv-chip::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: rgba(0,0,0,0.2);
+}
+
+.virtual-card-number {
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: 3px;
+    margin-bottom: 20px;
+    font-family: 'Courier New', Courier, monospace;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.4);
+}
+
+.virtual-card-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+}
+
+.virtual-card-holder label,
+.virtual-card-valid label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #94a3b8;
+    display: block;
+    margin-bottom: 2px;
+}
+
+.virtual-card-holder span,
+.virtual-card-valid span {
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Loan Calculator & Tenure Pills */
+.tenure-pills-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.tenure-pill {
+    padding: 10px 6px;
+    border-radius: 12px;
+    border: 1.5px solid var(--card-border);
+    background: #ffffff;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--navy);
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+}
+
+.tenure-pill.active {
+    background: var(--navy);
+    color: #ffffff;
+    border-color: var(--navy);
+    box-shadow: 0 4px 10px rgba(0, 0, 128, 0.2);
+}
+
+.loan-summary-box {
+    background: #f8fafc;
+    border-radius: 16px;
+    padding: 18px;
+    border: 1.5px solid var(--card-border);
+    margin-bottom: 16px;
+}
+
+/* Pocket Money Card & Chips */
+.pocket-money-card {
+    background: linear-gradient(135deg, #ec4899 0%, #db2777 50%, #9d174d 100%);
+    border-radius: 20px;
+    padding: 22px;
+    color: #ffffff;
+    box-shadow: 0 12px 28px rgba(219, 39, 119, 0.25);
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+.pm-chips-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+
+.pm-chip {
+    padding: 7px 14px;
+    border-radius: 20px;
+    border: 1.5px solid var(--card-border);
+    background: #ffffff;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--navy);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.pm-chip.active {
+    background: #db2777;
+    color: #ffffff;
+    border-color: #db2777;
+    box-shadow: 0 2px 8px rgba(219, 39, 119, 0.25);
+}
+
+/* Dark theme overrides */
+body.dark-theme .tenure-pill {
+    background: #1e293b;
+    border-color: #334155;
+    color: #f1f5f9;
+}
+
+body.dark-theme .tenure-pill.active {
+    background: var(--saffron);
+    border-color: var(--saffron);
+    color: #ffffff;
+}
+
+body.dark-theme .loan-summary-box {
+    background: #1e293b;
+    border-color: #334155;
+}
+
+body.dark-theme .pm-chip {
+    background: #1e293b;
+    border-color: #334155;
+    color: #f1f5f9;
+}
+
+body.dark-theme .pm-chip.active {
+    background: #db2777;
+    color: #ffffff;
+    border-color: #db2777;
+}
+
+
+
